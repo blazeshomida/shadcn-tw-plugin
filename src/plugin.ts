@@ -2,6 +2,19 @@ import plugin from "tailwindcss/plugin";
 import type { AnyObject, DefaultColorScheme, ThemeOptions } from "./types";
 import { deepMerge, formatColorPrefix, mapObject } from "./utils";
 import { DEFAULT_THEME_OPTIONS } from "./constants";
+import "culori/css";
+import { converter, round as _round } from "culori/fn";
+
+const oklch = converter("oklch");
+
+const round = _round(2);
+
+function formatCssTokenValue(value: string) {
+  const conversion = oklch(value);
+  if (!conversion) return value;
+  const { l = 0, c = 0, h = 0 } = conversion;
+  return `${round(l * 100)}% ${round(c)} ${round(h)}`;
+}
 
 function mapTokenObject<TObj extends AnyObject>(
   tokenObj: TObj,
@@ -9,17 +22,17 @@ function mapTokenObject<TObj extends AnyObject>(
 ) {
   return mapObject(tokenObj, {
     key: (tokenObjKey) => `--${colorPrefix}${String(tokenObjKey)}`,
-    value: (value) => value,
+    value: formatCssTokenValue,
   });
 }
 
 export const shadcnPlugin = plugin.withOptions(
   (options?: {
-      themes?: ThemeOptions;
-      colorPrefix?: string;
-      radius?: string;
-      defaultColorScheme?: DefaultColorScheme;
-    }) =>
+    themes?: ThemeOptions;
+    colorPrefix?: string;
+    radius?: string;
+    defaultColorScheme?: DefaultColorScheme;
+  }) =>
     ({ addBase }) => {
       const themeOptions = deepMerge(
         DEFAULT_THEME_OPTIONS,
@@ -61,7 +74,7 @@ export const shadcnPlugin = plugin.withOptions(
             ...acc,
             ...mapObject(tokenObj, {
               value: (_, key) =>
-                `hsl(var(--${formatColorPrefix(
+                `oklch(var(--${formatColorPrefix(
                   options?.colorPrefix
                 )}${key}) / <alpha-value>)`,
             }),
