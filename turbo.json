@@ -3,12 +3,17 @@
   "globalDependencies": ["**/.env.*local"],
   "pipeline": {
     "build": {
+      "dependsOn": ["prettier", "lint", "types"],
       "outputs": ["dist"],
       "inputs": ["src/**/*.ts"]
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "inputs": ["src/**/*.ts"]
     },
+    "types": {
+      "inputs": ["src/**/*.ts"]
+    },
+    "prettier": {},
     "dev": {
       "cache": false,
       "persistent": true

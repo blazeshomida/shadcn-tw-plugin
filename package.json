@@ -12,13 +12,25 @@
     "build": "NODE_ENV=production tsup",
     "turbo:build": "turbo build",
     "dev": "NODE_ENV=development tsup",
-    "turbo:dev": "turbo dev"
+    "turbo:dev": "turbo dev",
+    "lint": "eslint",
+    "turbo:lint": "turbo lint",
+    "types": "tsc",
+    "turbo:types": "turbo types",
+    "prettier": "prettier . --check",
+    "turbo:prettier": "turbo prettier",
+    "prettier:fix": "prettier . --write"
   },
   "devDependencies": {
+    "@eslint/js": "^9.3.0",
     "@types/node": "^20.12.12",
+    "eslint": "9.x",
+    "globals": "^15.3.0",
+    "prettier": "^3.2.5",
     "tailwindcss": "^3.4.3",
     "tsup": "^8.0.2",
     "turbo": "latest",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^7.11.0"
   }
 }
