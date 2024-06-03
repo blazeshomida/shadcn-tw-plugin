@@ -1,6 +1,6 @@
 {
   "name": "shadcn-tw-plugin",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A Tailwind CSS plugin for easy and flexible theme customization for the shadcn ui library.",
   "author": "Blaze Shomida",
   "license": "MIT",
