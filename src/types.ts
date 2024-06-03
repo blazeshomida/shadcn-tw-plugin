@@ -12,6 +12,13 @@ import type { NAMED_COLORS_ARRAY } from "./constants";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AnyObject = Record<PropertyKey, any>;
 
+export type ObjectKey<TObj extends AnyObject> = keyof TObj;
+export type ObjectValue<TObj extends AnyObject> = TObj[ObjectKey<TObj>];
+export type ObjectEntry<TObj extends AnyObject> = [
+  ObjectKey<TObj>,
+  ObjectValue<TObj>,
+];
+
 /**
  * A utility type that represents a string or a string with a `-foreground` suffix.
  *

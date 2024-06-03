@@ -46,6 +46,50 @@ function mapTokenObject<TObj extends AnyObject>(
 }
 
 /**
+ * Maps theme colors to Tailwind CSS variable format.
+ *
+ * @param options - The plugin options containing themes and colorPrefix.
+ * @returns An object with CSS variable definitions for each theme color.
+ */
+function mapThemeColors(options?: ShadcnTwPluginOptions) {
+  const result: AnyObject = {};
+  const themesConfig = deepMerge(DEFAULT_THEME_OPTIONS, options?.themes ?? {});
+  for (const tokenObj of Object.values(themesConfig)) {
+    for (const key of Object.keys(tokenObj)) {
+      result[key] =
+        `oklch(var(--${formatColorPrefix(options?.colorPrefix)}${key}) / <alpha-value>)`;
+    }
+  }
+  return result;
+}
+
+/**
+ * Maps the base theme tokens to CSS variables for Tailwind CSS.
+ *
+ * @param options - The plugin options containing themes, colorPrefix, and defaultColorScheme.
+ * @returns An object with CSS variable definitions for the base theme tokens.
+ */
+function mapThemeBase(options?: ShadcnTwPluginOptions) {
+  const themesConfig = deepMerge(DEFAULT_THEME_OPTIONS, options?.themes || {});
+  const colorPrefix = formatColorPrefix(options?.colorPrefix);
+  const defaultColorScheme = options?.defaultColorScheme ?? "light";
+  const defaultColorSchemeObj = themesConfig[defaultColorScheme];
+
+  const result: AnyObject = {
+    ":root": mapTokenObject(defaultColorSchemeObj, colorPrefix),
+  };
+
+  for (const [themeKey, tokenObj] of Object.entries(themesConfig)) {
+    if (themeKey !== defaultColorScheme) {
+      result[`.${themeKey}`] = mapTokenObject(tokenObj, colorPrefix);
+    }
+  }
+
+  result[":root"]["--radius"] = options?.radius || "0.5rem";
+  return result;
+}
+
+/**
  * Tailwind CSS plugin for `shadcn` component library theming.
  *
  * This plugin allows you to use CSS variables or Tailwind CSS utility classes for theming your `shadcn` components.
@@ -80,27 +124,7 @@ function mapTokenObject<TObj extends AnyObject>(
 export const shadcnTwPlugin = plugin.withOptions(
   (options?: ShadcnTwPluginOptions) =>
     ({ addBase }) => {
-      const themesConfig = deepMerge(
-        DEFAULT_THEME_OPTIONS,
-        options?.themes || {}
-      );
-      const colorPrefix = formatColorPrefix(options?.colorPrefix);
-      const defaultColorScheme = options?.defaultColorScheme || "light";
-      addBase(
-        deepMerge(
-          // Must be first arg so css cascade generates in correct order
-          {
-            ":root": {
-              "--radius": options?.radius || "0.5rem",
-            },
-          },
-          mapObject(themesConfig, {
-            key: (themeKey) =>
-              themeKey === defaultColorScheme ? `:root` : `.${themeKey}`,
-            value: (tokenObj) => mapTokenObject(tokenObj, colorPrefix),
-          })
-        )
-      );
+      addBase(mapThemeBase(options));
     },
   (options) => ({
     theme: {
@@ -112,21 +136,7 @@ export const shadcnTwPlugin = plugin.withOptions(
         },
       },
       extend: {
-        colors: Object.values({
-          ...DEFAULT_THEME_OPTIONS,
-          ...options?.themes,
-        }).reduce(
-          (acc, tokenObj) => ({
-            ...acc,
-            ...mapObject(tokenObj, {
-              value: (_, key) =>
-                `oklch(var(--${formatColorPrefix(
-                  options?.colorPrefix
-                )}${key}) / <alpha-value>)`,
-            }),
-          }),
-          {}
-        ),
+        colors: mapThemeColors(options),
         borderRadius: {
           lg: "var(--radius)",
           md: "calc(var(--radius) - 2px)",
