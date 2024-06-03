@@ -1,4 +1,4 @@
-import type { AnyObject } from "./types";
+import type { AnyObject, ObjectEntry, ObjectKey, ObjectValue } from "./types";
 import "culori/css";
 import { converter, round as roundTo } from "culori/fn";
 
@@ -62,22 +62,37 @@ export function deepMerge<Target extends AnyObject, Source extends AnyObject>(
  * @param value - Optional callback function to transform values.
  * @returns A new object with transformed keys and values.
  */
-export function mapObject<TObj extends AnyObject, TReturn>(
+export function mapObject<
+  TObj extends AnyObject,
+  TKey extends PropertyKey = ObjectKey<TObj>,
+  TValue = ObjectValue<TObj>,
+>(
   obj: TObj,
   {
     key,
     value,
   }: Partial<{
-    key: (key: keyof TObj, value: TObj[keyof TObj]) => PropertyKey;
-    value: (value: TObj[keyof TObj], key: keyof TObj) => TReturn;
+    key: (
+      key: ObjectKey<TObj>,
+      value: ObjectValue<TObj>,
+      index: number,
+      entries: Array<ObjectEntry<TObj>>
+    ) => TKey;
+    value: (
+      value: ObjectValue<TObj>,
+      key: ObjectKey<TObj>,
+      index: number,
+      entries: Array<ObjectEntry<TObj>>
+    ) => TValue;
   }>
-) {
-  return Object.entries(obj).reduce(
-    (acc, [objKey, objValue]) => ({
-      ...acc,
-      [key?.(objKey, objValue) || objKey]:
-        value?.(objValue, objKey) || objValue,
-    }),
-    {}
-  );
+): Record<TKey, TValue> {
+  const results: AnyObject = {};
+  const entries = Object.entries(obj);
+  let index = 0;
+  for (const [objKey, objValue] of entries) {
+    results[key?.(objKey, objValue, index, entries) || objKey] =
+      value?.(objValue, objKey, index, entries) || objValue;
+    index++;
+  }
+  return results as Record<TKey, TValue>;
 }
